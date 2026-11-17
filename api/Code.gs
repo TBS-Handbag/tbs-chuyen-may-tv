@@ -11,6 +11,7 @@ var COL = {
   group: 13, // N: NHÓM
   laborIe: 16, // Q: LĐ IE
   laborActual: 17, // R: LĐ THỰC TẾ
+  deliveryPct: 18, // S: Tỉ lệ giao %
   hourPlan: 19, // T: Kế hoạch / giờ
   firstHour: 20, // U..AF: thực hiện theo khung giờ
   lastHour: 31,
@@ -94,10 +95,13 @@ function toTeam(lineRow, block, hours) {
     hours: hours,
     groups: block.slice(1).map(function (row) {
       var pct = toNumber(row[COL.groupPct]);
+      var delivery = toNumber(row[COL.deliveryPct]);
       return {
         name: toText(row[COL.group]) || '',
         layout: round(row[COL.laborIe]),
         present: round(row[COL.laborActual]),
+        // Ô định dạng % nên getValues() trả về phân số (0.95)
+        deliveryPct: delivery === null ? null : Math.round(delivery * 100),
         hourPlan: round(row[COL.hourPlan]),
         hours: hours.map(function (_, i) { return round(row[COL.firstHour + i]); }),
         accPlan: round(row[COL.accPlan]),

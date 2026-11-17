@@ -192,11 +192,11 @@ function render() {
   var fontRem = Math.min(3, (BODY_REM / count) * 0.5);
 
   var html = ['<table id="board" style="font-size:' + fontRem + 'rem"><colgroup>',
-    '<col style="width:17rem"><col style="width:9.5rem"><col style="width:6.5rem">'];
+    '<col style="width:17rem"><col style="width:9.5rem"><col style="width:7.5rem"><col style="width:6.5rem">'];
   for (var i = 0; i < t.hours.length; i++) html.push('<col>');
   html.push('<col style="width:6.5rem"><col style="width:9rem"><col style="width:8rem"></colgroup>');
 
-  html.push('<tr><th class="name">NHÓM</th><th>LĐ<br>LAYOUT/CM</th><th>KH/h</th>');
+  html.push('<tr><th class="name">NHÓM</th><th>LĐ<br>LAYOUT/CM</th><th>TỈ LỆ<br>GIAO</th><th>KH/h</th>');
   for (i = 0; i < t.hours.length; i++) html.push('<th>' + esc(t.hours[i]) + '</th>');
   html.push('<th>LKKH</th><th>LKTH</th><th>%HT</th></tr>');
 
@@ -206,6 +206,7 @@ function render() {
     html.push('<tr style="height:' + rowH + 'px">');
     html.push('<td class="name">' + esc(g.name) + '</td>');
     html.push('<td>' + num(g.layout) + ' <span class="muted">/ ' + num(g.present) + '</span></td>');
+    html.push('<td>' + (g.deliveryPct === null ? EMPTY : g.deliveryPct + '%') + '</td>');
     html.push('<td>' + num(g.hourPlan) + '</td>');
     for (i = 0; i < g.hours.length; i++) {
       var h = g.hours[i];
