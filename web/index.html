@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TBS Chuyền May</title>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<link href="https://fonts.googleapis.com/css?family=Oswald:500,700&amp;subset=latin,vietnamese" rel="stylesheet">
+<style>
+/* Bảng màu: bg #070d1a, line #1c2740, chip #0f1729, over #e530e8, ok #16c45a,
+   under #ffd60a, warn #ff8a1f, bad #ef3b3b, up #22d266, down #ff4b4b.
+   Chỉ dùng CSS cũ (table, rgba, border-radius) để chạy trên trình duyệt TV đời cũ. */
+html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; }
+body { background: #070d1a; color: #fff; font-family: Oswald, "Arial Narrow", Arial, sans-serif; font-weight: 700; }
+table { border-collapse: collapse; border-spacing: 0; }
+td, th { padding: 0; }
+.hidden { display: none; }
+
+#header { width: 100%; height: 4.4rem; border-bottom: 1px solid #1c2740; table-layout: fixed; }
+#header td { vertical-align: middle; white-space: nowrap; }
+.h-left { padding-left: 0.6rem; }
+.h-left img { height: 2.2rem; vertical-align: middle; margin: 0 0.8rem 0 0.5rem; }
+.factory { color: #22d266; font-size: 2.25rem; vertical-align: middle; }
+.title { text-align: center; font-size: 2.25rem; letter-spacing: 0.05em; }
+.dot { display: inline-block; width: 0.6rem; height: 0.6rem; border-radius: 50%; background: #16c45a; vertical-align: middle; margin: 0 0.6rem; }
+.h-right { text-align: right; padding-right: 0.6rem; }
+.chip { display: inline-block; vertical-align: middle; height: 2.8rem; line-height: 2.8rem; padding: 0 0.7rem; margin-left: 0.5rem;
+  background: #0f1729; border: 1px solid #1c2740; border-radius: 0.375rem; font-size: 1.6rem; }
+.chip svg { vertical-align: middle; margin-right: 0.4rem; }
+.live { display: inline-block; vertical-align: middle; height: 2.8rem; line-height: 2.8rem; padding: 0 0.7rem; margin-left: 0.5rem;
+  border-radius: 0.375rem; font-size: 1.3rem; border: 1px solid rgba(239,59,59,0.5); background: rgba(239,59,59,0.1); color: #ff4b4b; }
+.live .ld { display: inline-block; width: 0.6rem; height: 0.6rem; border-radius: 50%; background: #ef3b3b; vertical-align: middle; margin-right: 0.4rem;
+  -webkit-animation: pulse 2s infinite; animation: pulse 2s infinite; }
+.live.paused { border-color: rgba(255,214,10,0.5); background: rgba(255,214,10,0.1); color: #ffd60a; }
+.live.paused .ld { background: #ffd60a; -webkit-animation: none; animation: none; }
+@-webkit-keyframes pulse { 50% { opacity: 0.5; } }
+@keyframes pulse { 50% { opacity: 0.5; } }
+
+#board { width: 100%; table-layout: fixed; text-align: center; }
+#board th, #board td { border-right: 1px solid #1c2740; border-bottom: 1px solid #1c2740; vertical-align: middle; }
+#board th:last-child, #board td:last-child { border-right: 0; }
+#board th { height: 5.4rem; font-size: 1.7rem; line-height: 1.25; background: #0c1322;
+  background: -webkit-linear-gradient(top, #323f61, #0c1322); background: linear-gradient(to bottom, #323f61, #0c1322); }
+#board th.name, #board td.name { text-align: left; padding-left: 0.75rem; }
+#board td.name { font-size: 0.6em; line-height: 1.25; padding-right: 0.5rem; }
+#board td.pad { padding: 0.2rem; }
+.muted { color: rgba(255,255,255,0.45); }
+.empty { font-size: 0.4em; color: rgba(255,255,255,0.3); }
+.box { border-radius: 0.375rem; overflow: hidden; }
+.over { background: #e530e8; color: #fff; }
+.ok { background: #16c45a; color: #fff; }
+.under { background: #ffd60a; color: #000; }
+.warn { background: #ff8a1f; color: #000; }
+.bad { background: #ef3b3b; color: #fff; }
+.missing { background: rgba(239,59,59,0.2); border: 2px solid #ef3b3b; color: #ef3b3b; }
+.acc { width: 100%; }
+.acc td { border: 0 !important; width: 50%; }
+.acc td.n { width: auto; white-space: nowrap; }
+.diff { display: inline-block; font-size: 0.45em; border-radius: 0.25rem; padding: 0 0.2em; margin-left: 0.15em; }
+.diff.up { background: rgba(22,196,90,0.15); color: #22d266; }
+.diff.down { background: rgba(239,59,59,0.15); color: #ff4b4b; }
+
+/* Điều hướng nổi góc dưới trái: ẩn khi không hover để không che bảng trên TV */
+#nav { position: fixed; bottom: 2rem; left: 2rem; padding: 0.6rem 0.8rem; background: rgba(15,23,41,0.95); border: 1px solid #1c2740;
+  border-radius: 1rem; font-size: 1.6rem; opacity: 0; filter: alpha(opacity=0); -webkit-transition: opacity 0.15s; transition: opacity 0.15s; white-space: nowrap; }
+#nav:hover, #nav.focus { opacity: 1; filter: alpha(opacity=100); }
+#nav button { width: 3rem; height: 3rem; border: 0; border-radius: 0.75rem; background: transparent; color: #fff; cursor: pointer; vertical-align: middle; padding: 0; }
+#nav button:hover { background: rgba(255,255,255,0.1); }
+#nav button.pp { background: rgba(255,214,10,0.2); color: #ffd60a; }
+#nav span { vertical-align: middle; margin-left: 0.4rem; padding-right: 0.4rem; }
+#nav svg { width: 1.6rem; height: 1.6rem; vertical-align: middle; }
+
+#message { text-align: center; padding: 6rem 1.5rem 0; }
+#message h1 { font-size: 3rem; margin: 0 0 1rem; }
+#message p { font-size: 1.8rem; color: rgba(255,255,255,0.7); margin: 0; }
+</style>
+</head>
+<body>
+<div id="message"><h1>Đang tải dữ liệu...</h1><p></p></div>
+
+<div id="app" class="hidden">
+  <table id="header"><tr>
+    <td class="h-left"><img src="data:image/png;base64,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" alt="TBS Group"><span class="factory" id="factory"></span></td>
+    <td class="title" id="title"></td>
+    <td class="h-right">
+      <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" style="width:1.6rem;height:1.6rem"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/><circle cx="9" cy="7" r="4"/></svg><span id="labor"></span></span><!--
+      --><span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="#ffd60a" stroke-width="2" style="width:1.3rem;height:1.3rem"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>TGLV -</span><!--
+      --><span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="#ffd60a" stroke-width="2" style="width:1.3rem;height:1.3rem"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg><span id="clock">--:--</span></span><!--
+      --><span class="live" id="live"><span class="ld"></span><span id="liveText">LIVE</span></span>
+    </td>
+  </tr></table>
+  <div id="boardWrap"></div>
+
+  <div id="nav">
+    <button type="button" id="prev" title="Tổ trước"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg></button>
+    <button type="button" id="pause" class="pp" title="Tạm dừng / tiếp tục"></button>
+    <button type="button" id="next" title="Tổ tiếp theo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg></button>
+    <span id="counter"></span>
+  </div>
+</div>
+
+<script>
+// ES5 thuần, không thư viện, để chạy được trên trình duyệt TV đời cũ
+// Web app Apps Script ở api/ (deploy bằng clasp, URL cố định)
+var API_URL = 'https://script.google.com/macros/s/AKfycbyd4ugLksm5y5o5tAAPwrKhFFT1ZBm72Erjq5ckG4tIvb3jAOe4bBgmfYer4PYBK-63/exec';
+var LINE = (/[?&]line=(\d+)/.exec(location.search) || [0, '1'])[1];
+var LOAD_TIMEOUT_MS = 30000;
+var INTERVAL_MS = 60000;
+var BODY_REM = 50; // chiều cao vùng bảng chia đều cho số nhóm → cỡ chữ tự co
+
+var teams = [];
+var step = 0;
+var paused = false;
+var timer = null;
+
+function $(id) { return document.getElementById(id); }
+function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+function pad2(n) { return n < 10 ? '0' + n : String(n); }
+function setClass(el, cls, on) {
+  var c = ' ' + el.className + ' ';
+  c = c.replace(' ' + cls + ' ', ' ');
+  el.className = (on ? c + cls : c).replace(/^\s+|\s+$/g, '');
+}
+
+// Khung thiết kế 120rem × 59rem: lấy cạnh nhỏ hơn để luôn vừa 1 màn hình
+function viewH() { return window.innerHeight || document.documentElement.clientHeight; }
+function viewW() { return window.innerWidth || document.documentElement.clientWidth; }
+function rootPx() { return Math.min(viewW() / 120, viewH() / 59); }
+
+// % so với kế hoạch: >100 tím, 95–100 xanh, 90–95 vàng, 85–90 cam, <85 đỏ (nhân chéo để tránh chia cho 0)
+function toneOf(value, target) {
+  if (value > target) return 'over';
+  if (value * 100 >= target * 95) return 'ok';
+  if (value * 100 >= target * 90) return 'under';
+  if (value * 100 >= target * 85) return 'warn';
+  return 'bad';
+}
+
+var EMPTY = '<span class="empty">&#9632;</span>';
+function num(n) { return n === null ? EMPTY : n; }
+
+// Ô màu: chiều cao tính bằng px vì height:100% trong td không ổn định trên trình duyệt cũ
+function box(value, target, unit, h) {
+  if (value === null) return EMPTY;
+  if (target === null) return value + unit;
+  return '<div class="box ' + toneOf(value, target) + '" style="height:' + h + 'px;line-height:' + h + 'px">' + value + unit + '</div>';
+}
+
+// Đã qua mốc giờ của cột mà ô vẫn trống → cảnh báo chưa nhập số
+function missing(h) {
+  var ih = h - 4;
+  return '<div class="box missing" style="height:' + ih + 'px;line-height:' + ih + 'px" title="Chưa nhập dữ liệu">' +
+    '<svg viewBox="0 0 24 24" style="width:0.85em;height:0.85em;vertical-align:middle">' +
+    '<path d="M9.4 3c1.16-2 4.04-2 5.2 0l7.35 12.75c1.15 2-.29 4.5-2.6 4.5H4.65c-2.31 0-3.75-2.5-2.6-4.5z" fill="#ef3b3b"/>' +
+    '<path d="M12 8.5v4.75" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/><circle cx="12" cy="16.6" r="1.35" fill="#fff"/></svg></div>';
+}
+
+// "18:00" → 1080 phút trong ngày
+function toMinutes(label) {
+  var p = label.split(':');
+  return Number(p[0]) * 60 + Number(p[1]);
+}
+
+function current() {
+  var n = teams.length;
+  var index = ((step % n) + n) % n;
+  return { index: index, team: teams[index] };
+}
+
+function render() {
+  if (!teams.length) return;
+  var px = rootPx();
+  document.documentElement.style.fontSize = px + 'px';
+
+  var cur = current();
+  var t = cur.team;
+  $('factory').innerHTML = esc(t.factory);
+  $('title').innerHTML = esc(t.line) + '<span class="dot"></span>Tổ ' + esc(t.team);
+  $('labor').innerHTML = 'LĐ ' + (t.layout === null ? '-' : t.layout) + '/' + (t.present === null ? '-' : t.present);
+  $('counter').innerHTML = (cur.index + 1) + '/' + teams.length;
+  $('liveText').innerHTML = paused ? 'PAUSE' : 'LIVE';
+  setClass($('live'), 'paused', paused);
+  $('pause').innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="' + (paused ? 'M6 4l14 8-14 8z' : 'M7 4h3v16H7zM14 4h3v16h-3z') + '"/></svg>';
+
+  var d = new Date();
+  var now = d.getHours() * 60 + d.getMinutes();
+  var groups = t.groups;
+  var count = Math.max(groups.length, 1);
+  // Các dòng nhóm chia đều phần chiều cao còn lại của màn hình
+  var rowH = Math.floor((viewH() - 4.4 * px - 5.4 * px) / count) - 1;
+  var boxH = Math.max(rowH - Math.round(0.4 * px) - 1, 1);
+  var fontRem = Math.min(3, (BODY_REM / count) * 0.5);
+
+  var html = ['<table id="board" style="font-size:' + fontRem + 'rem"><colgroup>',
+    '<col style="width:17rem"><col style="width:9.5rem"><col style="width:6.5rem">'];
+  for (var i = 0; i < t.hours.length; i++) html.push('<col>');
+  html.push('<col style="width:6.5rem"><col style="width:9rem"><col style="width:8rem"></colgroup>');
+
+  html.push('<tr><th class="name">NHÓM</th><th>LĐ<br>LAYOUT/CM</th><th>KH/h</th>');
+  for (i = 0; i < t.hours.length; i++) html.push('<th>' + esc(t.hours[i]) + '</th>');
+  html.push('<th>LKKH</th><th>LKTH</th><th>%HT</th></tr>');
+
+  for (var r = 0; r < groups.length; r++) {
+    var g = groups[r];
+    var diff = g.accActual !== null && g.accPlan !== null ? g.accActual - g.accPlan : null;
+    html.push('<tr style="height:' + rowH + 'px">');
+    html.push('<td class="name">' + esc(g.name) + '</td>');
+    html.push('<td>' + num(g.layout) + ' <span class="muted">/ ' + num(g.present) + '</span></td>');
+    html.push('<td>' + num(g.hourPlan) + '</td>');
+    for (i = 0; i < g.hours.length; i++) {
+      var h = g.hours[i];
+      var due = now >= toMinutes(t.hours[i]);
+      html.push('<td class="pad">' + (h === null && due ? missing(boxH) : box(h, g.hourPlan, '', boxH)) + '</td>');
+    }
+    html.push('<td>' + num(g.accPlan) + '</td>');
+    // 3 cột 50%|auto|50% để số luôn nằm giữa dù có badge chênh lệch hay không
+    html.push('<td><table class="acc"><tr><td></td><td class="n">' + num(g.accActual) + '</td><td style="text-align:left">' +
+      (diff !== null && diff !== 0 ? '<span class="diff ' + (diff > 0 ? 'up">+' : 'down">') + diff + '</span>' : '') +
+      '</td></tr></table></td>');
+    html.push('<td class="pad" style="padding-left:0.2rem;padding-right:0.2rem">' + (g.pct === null ? EMPTY : box(g.pct, 100, '%', boxH)) + '</td>');
+    html.push('</tr>');
+  }
+  html.push('</table>');
+  $('boardWrap').innerHTML = html.join('');
+}
+
+function tickClock() {
+  var d = new Date();
+  $('clock').innerHTML = pad2(d.getHours()) + ':' + pad2(d.getMinutes());
+}
+
+// JSONP: thẻ <script> chạy được trên mọi trình duyệt cũ, không cần CORS.
+// Mỗi lần gọi một tên callback riêng để kết quả trễ của lần trước không ghi đè.
+var seq = 0;
+function loadTeams(onData, onError) {
+  var name = '__teams' + (++seq);
+  var script = document.createElement('script');
+  var done = false;
+  var timeout = setTimeout(function () { finish(); onError('Hết thời gian chờ dữ liệu.'); }, LOAD_TIMEOUT_MS);
+  function finish() {
+    done = true;
+    clearTimeout(timeout);
+    window[name] = function () {}; // callback tới trễ thì bỏ qua
+    if (script.parentNode) script.parentNode.removeChild(script);
+  }
+  window[name] = function (data) {
+    if (done) return;
+    finish();
+    if (data && data.error) onError(data.error);
+    else onData((data && data.teams) || []);
+  };
+  script.onerror = function () { if (!done) { finish(); onError('Không kết nối được máy chủ dữ liệu.'); } };
+  script.src = API_URL + '?line=' + LINE + '&callback=' + name + '&_=' + new Date().getTime();
+  document.getElementsByTagName('head')[0].appendChild(script);
+}
+
+// Tới tổ cuối thì đọc lại Google Sheets, vòng sau hiển thị số mới; lỗi thì giữ số cũ
+function refresh() {
+  loadTeams(function (data) { if (data.length) { teams = data; render(); } }, function () {});
+}
+
+function schedule() {
+  if (timer) clearTimeout(timer);
+  timer = paused ? null : setTimeout(function () { go(1); }, INTERVAL_MS);
+}
+
+function go(delta) {
+  step += delta;
+  var n = teams.length;
+  if ((((step % n) + n) % n) === n - 1) refresh();
+  render();
+  schedule();
+}
+
+function togglePause() {
+  paused = !paused;
+  render();
+  schedule();
+}
+
+function showMessage(title, text) {
+  $('message').getElementsByTagName('h1')[0].innerHTML = esc(title);
+  $('message').getElementsByTagName('p')[0].innerHTML = esc(text);
+  document.documentElement.style.fontSize = rootPx() + 'px';
+  $('message').className = '';
+}
+
+// Màn hình TV không ai bấm, nên lỗi thì tự thử lại sau 1 phút
+function start() {
+  loadTeams(show, function (err) {
+    showMessage('Không thể tải dữ liệu chuyền', err || 'Lỗi không xác định khi đọc Google Sheets.');
+    setTimeout(start, 60000);
+  });
+}
+
+function show(data) {
+  if (!data.length) {
+    showMessage('Không có dữ liệu', 'Không tìm thấy tổ nào của Line ' + LINE + ' trong sheet Report.');
+    return setTimeout(start, 60000);
+  }
+  teams = data;
+  $('message').className = 'hidden';
+  $('app').className = '';
+  render();
+  schedule();
+}
+
+$('prev').onclick = function () { go(-1); };
+$('next').onclick = function () { go(1); };
+$('pause').onclick = togglePause;
+// Hiện thanh điều hướng khi dùng Tab trên bàn phím
+var navButtons = $('nav').getElementsByTagName('button');
+for (var b = 0; b < navButtons.length; b++) {
+  navButtons[b].onfocus = function () { setClass($('nav'), 'focus', true); };
+  navButtons[b].onblur = function () { setClass($('nav'), 'focus', false); };
+}
+
+// Điều khiển bằng remote/bàn phím: ← → chuyển tổ, Space tạm dừng
+document.onkeydown = function (e) {
+  e = e || window.event;
+  var k = e.keyCode;
+  if (k === 39) go(1);
+  else if (k === 37) go(-1);
+  else if (k === 32) togglePause();
+  else return true;
+  if (e.preventDefault) e.preventDefault();
+  return false;
+};
+window.onresize = function () { render(); };
+
+tickClock();
+setInterval(tickClock, 1000);
+setInterval(render, 30000); // cập nhật ô "chưa nhập" khi qua mốc giờ
+document.documentElement.style.fontSize = rootPx() + 'px';
+start();
+</script>
+</body>
+</html>
