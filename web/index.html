@@ -44,7 +44,6 @@ td, th { padding: 0; }
 #board th.name, #board td.name { text-align: left; padding-left: 0.75rem; }
 #board td.name { font-size: 0.6em; line-height: 1.25; padding-right: 0.5rem; }
 #board td.pad { padding: 0.2rem; }
-.muted { color: rgba(255,255,255,0.45); }
 .unit { font-size: 0.55em; color: rgba(255,255,255,0.45); margin-left: 0.05em; }
 .empty { font-size: 0.4em; color: rgba(255,255,255,0.3); }
 .box { border-radius: 0.375rem; overflow: hidden; }
@@ -194,11 +193,11 @@ function render() {
   var fontRem = Math.min(3, (BODY_REM / count) * 0.5);
 
   var html = ['<table id="board" style="font-size:' + fontRem + 'rem"><colgroup>',
-    '<col style="width:17rem"><col style="width:9.5rem"><col style="width:8rem"><col style="width:6.5rem">'];
+    '<col style="width:17rem"><col style="width:8rem"><col style="width:6.5rem">'];
   for (var i = 0; i < t.hours.length; i++) html.push('<col>');
   html.push('<col style="width:6.5rem"><col style="width:9rem"><col style="width:8rem"></colgroup>');
 
-  html.push('<tr><th class="name">NHÓM</th><th>LĐ<br>LAYOUT/CM</th><th>TỈ LỆ<br>GIAO</th><th>KH/h</th>');
+  html.push('<tr><th class="name">NHÓM</th><th>TỈ LỆ<br>GIAO</th><th>KH/h</th>');
   for (i = 0; i < t.hours.length; i++) html.push('<th>' + esc(t.hours[i]) + '</th>');
   html.push('<th>LKKH</th><th>LKTH</th><th>%HT</th></tr>');
 
@@ -207,7 +206,6 @@ function render() {
     var diff = g.accActual !== null && g.accPlan !== null ? g.accActual - g.accPlan : null;
     html.push('<tr style="height:' + rowH + 'px">');
     html.push('<td class="name">' + esc(g.name) + '</td>');
-    html.push('<td>' + num(g.layout) + ' <span class="muted">/ ' + num(g.present) + '</span></td>');
     html.push('<td>' + (g.deliveryPct == null ? EMPTY : g.deliveryPct + '<span class="unit">%</span>') + '</td>');
     html.push('<td>' + num(g.hourPlan) + '</td>');
     for (i = 0; i < g.hours.length; i++) {

@@ -98,8 +98,6 @@ function toTeam(lineRow, block, hours) {
       var delivery = toNumber(row[COL.deliveryPct]);
       return {
         name: toText(row[COL.group]) || '',
-        layout: round(row[COL.laborIe]),
-        present: round(row[COL.laborActual]),
         // Ô định dạng % nên getValues() trả về phân số (0.95)
         deliveryPct: delivery === null ? null : Math.round(delivery * 100),
         hourPlan: round(row[COL.hourPlan]),
