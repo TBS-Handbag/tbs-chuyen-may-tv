@@ -45,6 +45,8 @@ td, th { padding: 0; }
 #board td.name { font-size: 0.6em; line-height: 1.25; padding-right: 0.5rem; }
 #board td.pad { padding: 0.2rem; }
 .unit { font-size: 0.55em; color: rgba(255,255,255,0.45); margin-left: 0.05em; }
+/* Trong ô màu: giữ màu chữ của ô (đen/trắng), chỉ làm nhạt */
+.box .unit { color: inherit; opacity: 0.7; }
 .empty { font-size: 0.4em; color: rgba(255,255,255,0.3); }
 .box { border-radius: 0.375rem; overflow: hidden; }
 .over { background: #e530e8; color: #fff; }
@@ -150,8 +152,9 @@ function box(value, target, unit, h) {
 // Đã qua mốc giờ của cột mà ô vẫn trống → cảnh báo chưa nhập số
 function missing(h) {
   var ih = h - 4;
-  return '<div class="box missing" style="height:' + ih + 'px;line-height:' + ih + 'px" title="Chưa nhập dữ liệu">' +
-    '<svg viewBox="0 0 24 24" style="width:0.85em;height:0.85em;vertical-align:middle">' +
+  // vertical-align:middle căn theo chữ nên lệch xuống; dùng top:50% để căn đúng giữa ô
+  return '<div class="box missing" style="height:' + ih + 'px" title="Chưa nhập dữ liệu">' +
+    '<svg viewBox="0 0 24 24" style="display:block;position:relative;top:50%;width:0.85em;height:0.85em;margin:-0.425em auto 0">' +
     '<path d="M9.4 3c1.16-2 4.04-2 5.2 0l7.35 12.75c1.15 2-.29 4.5-2.6 4.5H4.65c-2.31 0-3.75-2.5-2.6-4.5z" fill="#ef3b3b"/>' +
     '<path d="M12 8.5v4.75" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/><circle cx="12" cy="16.6" r="1.35" fill="#fff"/></svg></div>';
 }
@@ -190,6 +193,8 @@ function render() {
   // Lần đầu ước lượng; sau khi vẽ đo lại chỗ trống thật rồi vẽ lại để lấp kín đáy màn hình
   var measured = arguments.length > 0;
   var avail = measured ? arguments[0] : Math.floor(viewH() - 4.4 * px - 5.4 * px - 2);
+  // Dưới 4 nhóm thì mỗi hàng chỉ cao bằng 1/4 màn hình, phần dưới để trống thay vì ô màu dài cả màn hình
+  if (count < 4) avail = Math.floor(avail / 4) * count;
   var baseH = Math.floor(avail / count);
   var fontRem = Math.min(3, (BODY_REM / count) * 0.5);
 
@@ -222,7 +227,7 @@ function render() {
     html.push('<td><table class="acc"><tr><td></td><td class="n">' + num(g.accActual) + '</td><td style="text-align:left">' +
       (diff !== null && diff !== 0 ? '<span class="diff ' + (diff > 0 ? 'up">+' : 'down">') + diff + '</span>' : '') +
       '</td></tr></table></td>');
-    html.push('<td class="pad" style="padding-left:0.2rem;padding-right:0.2rem">' + (g.pct === null ? EMPTY : box(g.pct, 100, '%', boxH)) + '</td>');
+    html.push('<td class="pad" style="padding-left:0.2rem;padding-right:0.2rem">' + (g.pct === null ? EMPTY : box(g.pct, 100, '<span class="unit">%</span>', boxH)) + '</td>');
     html.push('</tr>');
   }
   html.push('</table>');
