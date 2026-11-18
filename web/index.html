@@ -187,9 +187,10 @@ function render() {
   var now = d.getHours() * 60 + d.getMinutes();
   var groups = t.groups;
   var count = Math.max(groups.length, 1);
-  // Các dòng nhóm chia đều phần chiều cao còn lại của màn hình
-  var rowH = Math.floor((viewH() - 4.4 * px - 5.4 * px) / count) - 1;
-  var boxH = Math.max(rowH - Math.round(0.4 * px) - 1, 1);
+  // Lần đầu ước lượng; sau khi vẽ đo lại chỗ trống thật rồi vẽ lại để lấp kín đáy màn hình
+  var measured = arguments.length > 0;
+  var avail = measured ? arguments[0] : Math.floor(viewH() - 4.4 * px - 5.4 * px - 2);
+  var baseH = Math.floor(avail / count);
   var fontRem = Math.min(3, (BODY_REM / count) * 0.5);
 
   var html = ['<table id="board" style="font-size:' + fontRem + 'rem"><colgroup>',
@@ -204,6 +205,9 @@ function render() {
   for (var r = 0; r < groups.length; r++) {
     var g = groups[r];
     var diff = g.accActual !== null && g.accPlan !== null ? g.accActual - g.accPlan : null;
+    // Phần dư chia cho các hàng đầu, mỗi hàng 1px (chiều cao tr đã gồm border)
+    var rowH = baseH + (r < avail - baseH * count ? 1 : 0);
+    var boxH = Math.max(rowH - Math.round(0.4 * px) - 1, 1);
     html.push('<tr style="height:' + rowH + 'px">');
     html.push('<td class="name">' + esc(g.name) + '</td>');
     html.push('<td>' + (g.deliveryPct == null ? EMPTY : g.deliveryPct + '<span class="unit">%</span>') + '</td>');
@@ -223,6 +227,12 @@ function render() {
   }
   html.push('</table>');
   $('boardWrap').innerHTML = html.join('');
+
+  var rows = $('board').rows;
+  if (!measured && rows.length > 1) {
+    var real = viewH() - Math.ceil(rows[1].getBoundingClientRect().top);
+    if (real !== avail) render(real);
+  }
 }
 
 function tickClock() {
