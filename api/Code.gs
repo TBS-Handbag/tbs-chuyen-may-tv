@@ -129,7 +129,15 @@ function getLineTeams(lineNumber) {
   for (var i = 0; i < visible.length; i++) {
     if (!toText(visible[i][COL.team])) { lineRow = visible[i]; break; }
   }
-  if (!lineRow) return [];
+  if (!visible.length) return [];
+  if (!lineRow) {
+    // Sheet thiếu dòng tổng line: mượn tên line từ dòng tổ, tên nhà máy từ dòng tổng của line khác
+    var other = values.slice(1).filter(function (row) {
+      return toText(row[COL.factory]) && toNumber(row[COL.factory]) === null;
+    })[0];
+    lineRow = visible[0].slice();
+    lineRow[COL.factory] = other ? other[COL.factory] : '';
+  }
 
   var blocks = [];
   visible.forEach(function (row) {
